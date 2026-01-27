@@ -22,4 +22,12 @@ app.use(express.static("public")) // To use this folder for all wherever needed
 
 app.use(cookieParser()) // To parse cookies of browsers
 
+// import routes
+import userRouter from './routes/user.routes.js'
+
+app.use("/api/v1/users", userRouter)
+
+// declare routes
+
+
 export {app} 
