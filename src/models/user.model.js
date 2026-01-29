@@ -37,7 +37,7 @@ const userSchema = new Schema(
     coverImage:
     {
       type: String,
-      required: true
+      default: ""
     },
     watchHistory:[
       {
@@ -58,20 +58,25 @@ const userSchema = new Schema(
   {timestamps: true}
 )
 
-userSchema.pre("save", async function (next){
-  if(!this.isModified("password")) return next()
-  this.password = await bcrypt.hash(this.password, 10)
-  next()
-})
+//.pre is used to perform operations before something here before save. so when before save it checks if password is modified, if yes then only again hash it. If not then dont waste time and just return 
+userSchema.pre("save", async function () {
+  if (!this.isModified("password")) return;
+  this.password = await bcrypt.hash(this.password, 10);
+});
 
-userSchema.methods.isPasswordCorrect = async function(password){
+//.methods allows us to create new methods on existing schema here we made a isPasswordCorrect method which has asynch function which has a argument password from login page (called in user component). This password is compared with the bcrypt password stored in the database and returns true or false. 
+// bcrypt first unhashes and then compares.
+userSchema.methods
+.isPasswordCorrect = async function(password){
   return await bcrypt.compare(password, this.password)
 }
 
+
+// This are used to generate tokens using jwt.sign / It takes object as data.
 userSchema.methods.generateAccessToken = function(){
   return jwt.sign(
     {
-      id: this._id,
+      _id: this._id,
       email: this.email,
       username: this.username,
       fullname: this.fullname
@@ -85,7 +90,7 @@ userSchema.methods.generateAccessToken = function(){
 userSchema.methods.generateRefreshToken = function(){
   return jwt.sign(
     {
-      id: this._id,
+      _id: this._id,
     },
     process.env.REFRESH_TOKEN_SECRET,
     {
